@@ -90,6 +90,8 @@ with PerftestConfiguration {
     val injectionSteps = List(
       rampUsersPerSec(noLoad).to(load).during(rampUpTime),
       constantUsersPerSec(load).during(constantRateTime),
+      constantUsersPerSec(load * peakLoad).during(lenght-in-seconds),
+      constantUsersPerSec(load).during(constantRateTime),
       rampUsersPerSec(load).to(noLoad).during(rampDownTime)
     )
 

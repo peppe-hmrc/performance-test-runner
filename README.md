@@ -61,7 +61,10 @@ object HelloWorldRequests extends ServicesConfiguration {
 import uk.gov.hmrc.performance.simulation.ConfigurationDrivenSimulations
 import HelloWorldRequests._
 
-class HelloWorldSimulation extends ConfigurationDrivenSimulations {
+class HelloWorldSimulation extends PerformanceTestRunner {
+
+  // Decide whether to follow the redirects - default is false
+  override def followRedirect: Boolean = true
 
   setup("login", "Login") withRequests (navigateToLoginPage, submitLogin)
 

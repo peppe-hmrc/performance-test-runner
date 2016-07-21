@@ -35,8 +35,9 @@ class PerformanceTestRunnerSpec extends UnitSpec {
 
     val foo = http("Get Foo").get(s"/foo")
     val bar = http("Get Bar").get(s"/bar")
+    val pause = new PauseBuilder()
 
-    setup("some-id-1", "Some Description 1") withRequests(foo, bar)
+    setup("some-id-1", "Some Description 1") withActions (foo, pause, bar, pause)
     setup("some-id-2", "Some Description 2") withRequests bar toRunIf("", "")
   }
 
