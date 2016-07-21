@@ -30,6 +30,9 @@ class PerformanceTestRunnerSpec extends UnitSpec {
   GatlingConfiguration.setUpForTest()
 
   class TestRequestsSimulation extends PerformanceTestRunner {
+
+    override def followRedirect: Boolean = true
+
     val foo = http("Get Foo").get(s"/foo")
     val bar = http("Get Bar").get(s"/bar")
 
