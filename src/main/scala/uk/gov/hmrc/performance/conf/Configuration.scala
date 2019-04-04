@@ -44,6 +44,8 @@ trait Configuration {
   
   def readPropertyOption(property: String): Option[String] = Try(applicationConfig.getString(property)).toOption
 
+  def readPropertyObjectList(property: String): List[Config] = applicationConfig.getConfigList(property).asScala.toList
+
   def readPropertyBooleanOption(property: String): Option[Boolean] = Try(applicationConfig.getBoolean(property)).toOption
 
   def readPropertyList(property: String): List[String] = applicationConfig.getStringList(property).asScala.toList

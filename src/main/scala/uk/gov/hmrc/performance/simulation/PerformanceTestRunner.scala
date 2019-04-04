@@ -17,6 +17,7 @@
 package uk.gov.hmrc.performance.simulation
 
 import io.gatling.core.Predef._
+import io.gatling.core.controller.throttle.ThrottleStep
 import io.gatling.core.structure.{PopulationBuilder, ScenarioBuilder}
 import uk.gov.hmrc.performance.conf.{HttpConfiguration, JourneyConfiguration, PerftestConfiguration}
 import uk.gov.hmrc.performance.feeder.CsvFeeder
@@ -73,6 +74,9 @@ with PerftestConfiguration {
         }
 
         override lazy val load: Double = conf.load
+        private val journeyThrottleSteps: Seq[ThrottleStep] = conf.journeyThrottle
+
+        override val journeyThrottle: Seq[ThrottleStep] = journeyThrottleSteps
       }
 
     })
@@ -93,7 +97,10 @@ with PerftestConfiguration {
       rampUsersPerSec(load).to(noLoad).during(rampDownTime)
     )
 
-    scenario.builder.inject(injectionSteps)
+    if(scenario.journeyThrottle.isEmpty)
+      scenario.builder.inject(injectionSteps)
+    else
+      scenario.builder.inject(injectionSteps).throttle(scenario.journeyThrottle)
   })
 
   def runSimulation(): Unit = {

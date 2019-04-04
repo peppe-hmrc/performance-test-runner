@@ -18,12 +18,15 @@ package uk.gov.hmrc.performance.simulation
 
 import io.gatling.core.Predef._
 import io.gatling.core.action.builder.ActionBuilder
+import io.gatling.core.controller.throttle.ThrottleStep
 import io.gatling.core.session.Expression
 import io.gatling.core.structure.{ChainBuilder, ScenarioBuilder}
 import io.gatling.http.request.builder.HttpRequestBuilder
 
 trait Journey {
   val load: Double
+
+  val journeyThrottle: Seq[ThrottleStep]
 
   def builder: ScenarioBuilder
 }

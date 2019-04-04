@@ -16,6 +16,11 @@
 
 package uk.gov.hmrc.performance.conf
 
+import com.typesafe.config.Config
+import io.gatling.core.controller.throttle.{Hold, Jump, Reach, ThrottleStep}
+
+import scala.concurrent.duration._
+
 trait JourneyConfiguration extends Configuration {
 
   val allJourneys: List[String] = keys("journeys")
@@ -50,9 +55,22 @@ trait JourneyConfiguration extends Configuration {
         val runIf = readPropertySetOrEmpty(s"journeys.$id.run-if")
         val skipIf = readPropertySetOrEmpty(s"journeys.$id.skip-if")
         val description = generateDescription(abstractDescription, runIf, skipIf)
-        JourneyDefinition(id, description, load, parts, feeder, runIf, skipIf)
+
+        val scenarioThrottle = if(hasProperty(s"journeys.$id.throttle")) generateScenarioThrottle(s"journeys.$id.throttle") else List.empty
+
+        JourneyDefinition(id, description, load, parts, feeder, runIf, skipIf, scenarioThrottle)
       })
     journeys.filter(definition => definition.shouldRun(labels))
+  }
+
+  def generateScenarioThrottle(path:String): List[ThrottleStep] = {
+    def convert(config: Config): ThrottleStep = config.getString("name") match {
+      case "reachTps" => Reach(config.getInt("tps"), config.getInt("seconds") seconds)
+      case "holdFor" => Hold(config.getInt("seconds") seconds)
+      case "jumpTo" => Jump(config.getInt("tps"))
+    }
+
+    readPropertyObjectList(s"$path").map(convert)
   }
 
   def validateExtendedJourney(abstractJourneyId: String): Unit = {
@@ -78,7 +96,7 @@ trait JourneyConfiguration extends Configuration {
   }
 }
 
-case class JourneyDefinition(id: String, description: String, load: Double, parts: List[String], feeder: String, runIf: Set[String] = Set.empty, skipIf: Set[String] = Set.empty) {
+case class JourneyDefinition(id: String, description: String, load: Double, parts: List[String], feeder: String, runIf: Set[String] = Set.empty, skipIf: Set[String] = Set.empty, journeyThrottle: List[ThrottleStep] = List.empty) {
   def shouldRun(testLabels: Set[String]): Boolean = {
     if (runIf.intersect(skipIf).nonEmpty) throw new scala.RuntimeException(s"Invalid configuration for journey with id=$id. 'run-if' and 'skip-if' can't overlap")
     if (skipIf.intersect(testLabels).nonEmpty) false
